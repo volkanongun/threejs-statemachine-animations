@@ -106,15 +106,6 @@ assetLoader.load('assets/AnimatedSkeleton.glb', function(gltf) {
     skeleton = new Skeleton(model, mixer, animations)
     entityManager.add(skeleton)
 
-    const acceleration = new THREE.Vector3(1, 0.25, 8.0);
-    const velocity = new THREE.Vector3(0, 0, 0);
-
-    const _Q = new THREE.Quaternion();
-    const _A = new THREE.Vector3();
-    const _R = model.quaternion.clone();
-
-    const acc = acceleration.clone();
-
     window.addEventListener('keydown', function(e){
       if(e.key === "ArrowUp"){
         skeleton.isRunning = true
