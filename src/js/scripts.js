@@ -2,6 +2,8 @@ import * as THREE from 'three'
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls'
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader'
 import * as dat from 'dat.gui'
+import * as YUKA from 'yuka'
+import {Skeleton} from './Skeleton'
 
 const gui = new dat.GUI()
 
@@ -21,6 +23,7 @@ const camera = new THREE.PerspectiveCamera(
   1000
 )
 camera.position.set(7,5,7)
+camera.lookAt(scene.position)
 
 const orbit = new OrbitControls(camera, renderer.domElement)
 
@@ -61,7 +64,9 @@ window.addEventListener('mousemove', function(e){
 })
 
 const assetLoader = new GLTFLoader();
+const entityManager = new YUKA.EntityManager()
 
+let skeleton
 let target = new THREE.Vector3()
 assetLoader.load('assets/AnimatedSkeleton.glb', function(gltf) {
     const model = gltf.scene;
@@ -79,23 +84,77 @@ assetLoader.load('assets/AnimatedSkeleton.glb', function(gltf) {
 
     model.getObjectByName('Cylinder001').material.color.set(0xC3BDBD)
     
-    gui.addColor(options, 'SkeletonColor').onChange(function(e){
+    gui.addColor(options, 'skeletonColor').onChange(function(e){
       model.getObjectByName('Cylinder001').material.color.set(e)
     })
 
-    //model.scale.set(1,1,1);
+    const animations = new Map()
+    model.animations = gltf.animations
+    const mixer = new THREE.AnimationMixer(model)
+
+    const idleAction = mixer.clipAction("SkeletonArmature|Skeleton_Idle")
+    idleAction.play()
+    idleAction.enabled = false
     
+    const runningAction = mixer.clipAction("SkeletonArmature|Skeleton_Running")
+    runningAction.play()
+    runningAction.enabled = false
+
+    animations.set("IDLE", idleAction)
+    animations.set("RUNNING", runningAction)
+
+    skeleton = new Skeleton(model, mixer, animations)
+    entityManager.add(skeleton)
+
+    const acceleration = new THREE.Vector3(1, 0.25, 8.0);
+    const velocity = new THREE.Vector3(0, 0, 0);
+
+    const _Q = new THREE.Quaternion();
+    const _A = new THREE.Vector3();
+    const _R = model.quaternion.clone();
+
+    const acc = acceleration.clone();
+
+    window.addEventListener('keydown', function(e){
+      if(e.key === "ArrowUp"){
+        skeleton.isRunning = true
+      }
+
+      if (e.key === "ArrowDown") {
+        skeleton.isRunning = true
+      }
+  
+      if (e.key === "ArrowLeft") {
+        skeleton.isRunning = true
+      }
+
+      if (e.key === "ArrowRight") {
+        skeleton.isRunning = true
+      }
+
+    })
+
+    window.addEventListener('keyup', function(){
+      skeleton.isRunning = false
+    })
+
+
 }, undefined, function(error) {
     console.error(error);
 });
 
-
+const time = new YUKA.Time()
 
 function animate(){
+  
+  const delta = time.update().getDelta()
+  entityManager.update(delta)
+
   target.y = 2
   camera.lookAt(target)
   
   renderer.render(scene, camera)
+
 }
 
 renderer.setAnimationLoop(animate)

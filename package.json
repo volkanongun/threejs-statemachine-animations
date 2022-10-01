@@ -1,5 +1,5 @@
 {
-  "name": "threejs-starter",
+  "name": "threejs-statemachine-animations",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -14,7 +14,8 @@
   },
   "dependencies": {
     "dat.gui": "^0.7.9",
-    "three": "^0.143.0"
+    "three": "^0.143.0",
+    "yuka": "^0.7.8"
   },
   "staticFiles": {
     "staticOutPath": "assets"
